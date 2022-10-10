@@ -194,6 +194,7 @@ watchsession(pid_t child, int sess, int cred)
 			status = WTERMSIG(status) + 128;
 		} else
 			status = WEXITSTATUS(status);
+		child = (pid_t)-1;
 	}
 	else if (caught_signal)
 		status = caught_signal + 128;
@@ -233,6 +234,7 @@ pamauth(const char *user, const char *myname, int interactive, int nopass, int p
 		.conv = pamconv,
 		.appdata_ptr = NULL,
 	};
+	struct sigaction action;
 	const char *ttydev;
 	pid_t child;
 	int ret, sess = 0, cred = 0;
@@ -318,6 +320,16 @@ pamauth(const char *user, const char *myname, int interactive, int nopass, int p
 		warn("pam_setcred(?, PAM_REINITIALIZE_CRED): %s", pam_strerror(pamh, ret));
 	else
 		cred = 1;
+
+	/* force SIGCHLD to default handling */
+	sigemptyset(&action.sa_mask);
+	action.sa_handler = SIG_DFL;
+	action.sa_flags = 0;
+	if (sigaction(SIGCHLD, &action, NULL) != 0) {
+		pamcleanup(ret, sess, cred);
+		syslog(LOG_AUTHPRIV | LOG_NOTICE, "failed to reset SIGCHLD handler");
+		errx(1, "Failed to reset SIGCHLD handler");
+	}
 
 	/* open session */
 	ret = pam_open_session(pamh, 0);
