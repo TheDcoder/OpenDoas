@@ -30,6 +30,8 @@ usage: configure [options]
 
   --uid-max=NUM          set UID_MAX (default 65535)
   --gid-max=NUM          set GID_MAX (default 65535)
+  
+  --default-path=PATH    set default PATH for executed environment
 
   --help, -h             display this help and exit
 EOF
@@ -40,6 +42,7 @@ EOF
 WITHOUT_TIMESTAMP=yes
 UID_MAX=65535
 GID_MAX=65535
+DEFAULT_PATH="/usr/local/bin:/usr/local/sbin:/bin:/sbin:/usr/bin:/usr/sbin"
 
 for x; do
 	opt=${x%%=*}
@@ -64,6 +67,7 @@ for x; do
 	--without-timestamp) WITHOUT_TIMESTAMP=yes ;;
 	--uid-max) UID_MAX=$var ;;
 	--gid-max) UID_MAX=$var ;;
+	--default-path) DEFAULT_PATH=$var ;;
 	--help|-h) usage ;;
 	*) die "Error: unknown option $opt" ;;
 	esac
@@ -103,6 +107,9 @@ if [ -z "$OS" ]; then
 fi
 
 OS_CFLAGS="-D__${OS}__"
+
+printf 'Setting DEFAULT_PATH\t\t\t%s.\n' "$DEFAULT_PATH" >&2
+printf '#define DEFAULT_PATH "%s"\n' "$DEFAULT_PATH" >>$CONFIG_H
 
 case "$OS" in
 	linux)

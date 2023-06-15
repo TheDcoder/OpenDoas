@@ -397,8 +397,8 @@ main(int argc, char **argv)
 		err(1, "initgroups");
 	if (setresuid(target, target, target) != 0)
 		err(1, "setresuid");
-	if (setenv("PATH", safepath, 1) == -1)
-		err(1, "failed to set PATH '%s'", safepath);
+	if (setenv("PATH", DEFAULT_PATH, 1) == -1)
+		err(1, "failed to set PATH '%s'", DEFAULT_PATH);
 #endif
 
 	if (getcwd(cwdpath, sizeof(cwdpath)) == NULL)
